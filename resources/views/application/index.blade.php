@@ -2,7 +2,7 @@
     <x-slot name="content">
         <div class="col-4">
         </div>
-    <h1>Your health Insurance</h1>
+        <h1>Your health Insurance</h1>
         <div class="row">
             <div class="col-6">
                 <p>
@@ -19,7 +19,7 @@
 
             </div>
             <div class="col-6">
-                <form method="POST" action="/getzip">
+                <form method="POST" action="{{ route('index') }}">
                     @csrf
                     <div class="row">
                         <div class="col-5">

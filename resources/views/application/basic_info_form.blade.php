@@ -3,11 +3,6 @@
     <x-slot name="content" :zipDetails="$zipDetails">
 
     <h2>Basic Information</h2>
-        <div>
-            @foreach($errors->all() as $message)
-            <p class="text-alert text-xs">{{ $message }}</p>
-            @endforeach
-        </div>
     <form class="row g-3" action="/app/basic-info" method="POST">
         @csrf
         <div class="col-3">

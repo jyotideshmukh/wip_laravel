@@ -9,11 +9,13 @@ class Application extends Model
 {
     use HasFactory;
 
-    public function user(){
-
+    public function user()
+    {
         return $this->hasOne('user_id');
-
     }
 
-
+    public function medicalHistory()
+    {
+        return $this->belongsToMany(MedicalHistory::class);
+    }
 }
