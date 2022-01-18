@@ -13,4 +13,17 @@ class ApplicationRepository extends BaseRepository
         parent::__construct($application);
         $this->application = $application;
     }
+
+    public function store($request)
+    {
+        $params['zip'] = $request->input('zip');
+        $params['app_no'] = 'WIP' . rand(1, 1000);
+        $application = $this->application->create($params);
+        return $application;
+    }
+
+    public function storeDetails($application, $request)
+    {
+        $application->detail()->create($request->all());
+    }
 }

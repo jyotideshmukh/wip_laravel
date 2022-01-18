@@ -4,6 +4,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\DocumentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,20 +17,29 @@ use App\Http\Controllers\ApplicationController;
 |
 */
 
-Route::any('/', [ApplicationController::class, 'index'])->name('index');
+Route::get('/', [ApplicationController::class, 'zip'])->name('app.zip');
+Route::post('/', [ApplicationController::class, 'storeZip'])->name('app.storeZip');
 
-// basic Information
-Route::get('/app/basic-info', [ApplicationController::class, 'basicInfo'])->name('app.basicInfo');
-Route::post('/app/basic-info', [ApplicationController::class, 'storeBasicInfo'])->name('app.storeBasicInfo');
+// basic info
+Route::get('/application/basic-info', [ApplicationController::class, 'basicInfo'])->name('app.basicInfo');
+Route::post('/application/basic-info', [ApplicationController::class, 'storeBasicInfo'])->name('app.storeBasicInfo');
 
-// Essential Information
-Route::get('/app/essential-info', [ApplicationController::class, 'essentialInfo'])->name('app.essentialInfo');
-Route::post('/app/essential-info', [ApplicationController::class, 'storeEssentialInfo'])->name('app.storeEssentialInfo');
+// essential info
+Route::get('/application/essential-info', [ApplicationController::class, 'essentialInfo'])->name('app.essentialInfo');
+Route::post('/application/essential-info', [ApplicationController::class, 'storeEssentialInfo'])->name('app.storeEssentialInfo');
 
 // medical history
-Route::get('/app/medical-history', [ApplicationController::class, 'medicalHistory'])->name('app.medicalHistory');
-Route::post('/app/medical-history', [ApplicationController::class, 'storeMedicalHistory'])->name('app.storeMedicalHistory');
+Route::get('/application/medical-history', [ApplicationController::class, 'medicalHistory'])->name('app.medicalHistory');
+Route::post('/application/medical-history', [ApplicationController::class, 'storeMedicalHistory'])->name('app.storeMedicalHistory');
 
-// Lifestyle
-Route::get('/app/life-style', [ApplicationController::class, 'lifeStyle'])->name('app.lifeStyle');
-Route::post('/app/life-style', [ApplicationController::class, 'lifeStyle'])->name('app.lifeStyle');
+// life style
+Route::get('/application/life-style', [ApplicationController::class, 'lifeStyle'])->name('app.lifeStyle');
+Route::post('/application/life-style', [ApplicationController::class, 'storeLifeStyle'])->name('app.storeLifeStyle');
+
+// email registration
+Route::get('/application/register-email', [ApplicationController::class, 'registerEmail'])->name('app.registerEmail');
+Route::post('/application/register-email', [ApplicationController::class, 'storeRegisterEmail'])->name('app.storeRegisterEmail');
+
+// Document upload
+Route::get('/application/documents', [DocumentController::class, 'upload'])->name('app.uploadDocuments');
+Route::post('/application/documents', [DocumentController::class, 'processUpload'])->name('app.processUpload');

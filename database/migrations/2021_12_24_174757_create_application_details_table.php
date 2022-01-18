@@ -19,9 +19,9 @@ class CreateApplicationDetailsTable extends Migration
             $table->string('firstname');
             $table->string('middlename')->nullable(true);
             $table->string('lastname');
-            $table->string('email');
-            $table->timestamp('birthdate');
-            $table->enum('gender',['male','female','other']);
+            $table->string('email')->nullable();
+            $table->dateTime('birthdate');
+            $table->enum('gender', ['male', 'female', 'other']);
             $table->string('street_address');
             $table->string('apartment');
             $table->string('city');

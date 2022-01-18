@@ -9,8 +9,22 @@ class ApplicationDetail extends Model
 {
     use HasFactory;
 
-    public function application(){
+    protected $guarded = ['id'];
 
+
+    /***********************************************/
+    // Mutators
+    /***********************************************/
+    public function setBirthdateAttribute($value)
+    {
+        $this->attributes['birthdate'] = new \DateTime($value);
+    }
+
+    /***********************************************/
+    // Relations
+    /***********************************************/
+    public function application()
+    {
         return $this->belongsTo('applications');
     }
 }

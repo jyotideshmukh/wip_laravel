@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Application;
-use App\Models\ApplicationDetail;
+
+use App\Http\Requests\StoreBasicInfo;
+use App\Http\Requests\StoreEssentialInfo;
 use App\Repositories\ApplicationKeyValueRepository;
 use App\Repositories\ApplicationRepository;
+use App\Repositories\LifestyleRepository;
 use App\Repositories\MedicalHistoryRepository;
 use App\Rules\ValidateUsZip;
 use App\Services\ZipDetails;
 use Illuminate\Http\Request;
-
 
 class ApplicationController extends Controller
 {
@@ -18,94 +19,73 @@ class ApplicationController extends Controller
     protected $applicationRepository;
     protected $applicationKeyValueRepository;
     protected $medicalHistoryRepository;
+    protected $lifestyleRepository;
 
     public function __construct(
         ApplicationRepository $applicationRepository,
         ApplicationKeyValueRepository $applicationKeyValueRepository,
-        MedicalHistoryRepository $medicalHistoryRepository
+        MedicalHistoryRepository $medicalHistoryRepository,
+        LifestyleRepository $lifestyleRepository
     ) {
         $this->applicationRepository = $applicationRepository;
         $this->applicationKeyValueRepository = $applicationKeyValueRepository;
         $this->medicalHistoryRepository = $medicalHistoryRepository;
+        $this->lifestyleRepository = $lifestyleRepository;
     }
 
-    public function index(Request $request)
+    public function zip(Request $request)
     {
-        if ($request->isMethod('get')) {
-            return view('application.index');
-        } else {
-            $request->validate([
-                'zip' => new ValidateUsZip()
-            ]);
-            session(['zip' => $request->zip]);
-            return redirect(route('app.basicInfo'));
+        $request->session()->forget('application');
+        return view('application.zip');
+    }
+
+    public function storeZip(Request $request)
+    {
+        $request->validate([
+            'zip' => ['required', new ValidateUsZip()]
+        ]);
+        $request->session()->put('application.zip', $request->input('zip'));
+        return redirect(route('app.basicInfo'));
+    }
+
+
+    public function basicInfo(ZipDetails $zipDetails, Request $request)
+    {
+        if ($request->session()->missing('application.zip')) {
+            return redirect(route('app.zip'));
         }
-    }
-
-    public function basicInfo(ZipDetails $zipDetails)
-    {
-        $zipData = $zipDetails->getZipDetails(session('zip'));
+        $zipData = $zipDetails->getZipDetails($request->session()->get('application.zip'));
         return view('application.basic_info_form', [
             'zipDetails' => $zipData
         ]);
     }
 
-    public function storeBasicInfo(Request $request)
+    public function storeBasicInfo(StoreBasicInfo $request)
     {
-        $validator = $request->validate([
-            'firstname' => 'required|max:255',
-            'lastname' => 'required',
-            'email' => 'required|email',
-            'state' => 'required',
-            'city' => 'required',
-            'zip' => 'required',
-            'birthdate' => 'required|date',
-            'gender' => 'required',
-        ]);
-
-        $app = new Application();
-        $app->zip = request('zip');
-        $app->app_no = 'WIP' . rand(1, 1000);
-        $app->save();
-
-        $appDetail = new ApplicationDetail();
-        $appDetail->prefix = request('prefix');
-        $appDetail->firstname = request('firstname');
-        $appDetail->lastname = request('lastname');
-        $appDetail->gender = request('gender');
-        $appDetail->birthdate = date('Y-m-d', strtotime(request('birthdate')));
-        $appDetail->email = request('email');
-        $appDetail->street_address = request('street_address');
-        $appDetail->apartment = request('apartment');
-        $appDetail->state = request('state');
-        $appDetail->city = request('city');
-        $appDetail->zip = request('zip');
-        $appDetail->application_id = $app->id;
-        $appDetail->save();
-
-        session(['app_no' => $app->app_no]);
-        session(['app_id' => $app->id]);
-        return redirect('/app/essential-info');
+        $application = $this->applicationRepository->store($request);
+        $this->applicationRepository->storeDetails($application, $request);
+        $request->session()->put('application.id', $application->id);
+        return redirect(route('app.essentialInfo'));
     }
 
-    public function essentialInfo()
+    public function essentialInfo(Request $request)
     {
-        $app_no = session('app_no');
+        if ($request->session()->missing('application.id')) {
+            return redirect(route('app.zip'));
+        }
+        $application = $this->applicationRepository->getOne($request->session()->get('application.id'));
+        if (!$application) {
+            return redirect(route('app.zip'));
+        }
+        $app_no = $application->detail->app_no;
         return view('application.essential_info_form', [
             'app_no' => $app_no
         ]);
     }
 
-    public function storeEssentialInfo(Request $request)
+    public function storeEssentialInfo(StoreEssentialInfo $request)
     {
-        $validated = $request->validate([
-            'height_feet' => 'required',
-            'height_inches' => 'required',
-            'weight' => 'required',
-            'is_us_citizen' => 'required',
-            'is_green_card_holder' => 'sometimes'
-        ]);
-        $this->applicationKeyValueRepository->storeKeyValue($validated, session('app_id'));
+        $this->applicationKeyValueRepository->storeKeyValue($request->except('_token'), $request->session()->get('application.id'));
         return redirect(route('app.medicalHistory'));
     }
 
@@ -119,23 +99,42 @@ class ApplicationController extends Controller
 
     public function storeMedicalHistory(Request $request)
     {
-        $application = $this->applicationRepository->getOne(session('app_id'));
-        $application->medicalHistory()->sync($request->except('_token'));
+        $application = $this->applicationRepository->getOne($request->session()->get('application.id'));
+        $application->medicalHistory()->sync($request->except(['_token', 'is_family_history_positive']));
+        $this->applicationKeyValueRepository->storeKeyValue($request->only('is_family_history_positive'), $request->session()->get('application.id'));
         return redirect(route('app.lifeStyle'));
     }
 
     public function lifeStyle()
     {
-        $medicalHistories = $this->medicalHistoryRepository->getAll();
-        return view('application.medical_history', [
-            'medicalHistories' => $medicalHistories
+        $lifestyles = $this->lifestyleRepository->getAll();
+        return view('application.lifestyles', [
+            'lifestyles' => $lifestyles
         ]);
     }
 
     public function storeLifeStyle(Request $request)
     {
-        $application = $this->applicationRepository->getOne(session('app_id'));
-        $application->medicalHistory()->sync($request->except('_token'));
-        dd($request->except('_token'));
+        $application = $this->applicationRepository->getOne($request->session()->get('application.id'));
+        $application->lifestyle()->sync($request->except(['_token', 'is_vehical_accident_violations_positive']));
+        $this->applicationKeyValueRepository->storeKeyValue($request->only('is_vehical_accident_violations_positive'), $request->session()->get('application.id'));
+        return redirect(route('app.registerEmail'));
+    }
+
+    public function registerEmail(Request $request)
+    {
+        return view('application.register_email');
+    }
+
+    public function storeRegisterEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+        $application = $this->applicationRepository->getOne($request->session()->get('application.id'));
+        $application->detail()->update([
+            'email' => $request->email
+        ]);
+        return redirect(route('app.uploadDocuments'));
     }
 }
