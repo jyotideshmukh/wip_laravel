@@ -19,6 +19,11 @@ class CreateDocumentsTable extends Migration
             $table->boolean('is_parsed');
             $table->enum('document_type', ['driving_license', 'ehs', 'profile_picture']);
             $table->text('parsed_content')->nullable();
+            $table->text('parsed_license_no')->nullable();
+            $table->text('parsed_license_expiry_date')->nullable();
+            $table->text('parsed_first_name')->nullable();
+            $table->text('parsed_last_name')->nullable();
+            $table->text('parsed_address')->nullable();
             $table->timestamps();
         });
     }

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class DocumentController extends Controller
 {
+
     public function __construct()
     {
     }
@@ -21,17 +22,20 @@ class DocumentController extends Controller
     public function processUpload(Request $request, UploadService $uploadService)
     {
         foreach ($request->file() as $key => $file) {
-            $path = $uploadService->upload($file, 'public/uploads');
 
+            if (!in_array($key, ['driving_license'])) {
+                continue;
+            }
+
+            $path = $uploadService->upload($file, 'public' . DIRECTORY_SEPARATOR . 'uploads');
             $document = new Document();
             $document->document_path = $path;
             $document->is_parsed = false;
             $document->document_type = $key;
             $document->save();
-
             ExtractText::dispatch($document);
         }
 
-        return redirect(route('app.zip'))->with('success', 'Application successfully submitted');
+        return redirect(route('app.uploadDocuments'))->with('success', 'Application successfully submitted');
     }
 }

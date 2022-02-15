@@ -4,7 +4,7 @@
 
 <h1>Your health Insurance</h1>
 <div class="row">
-    <div class="col-6">
+    <div class="col-12">
         <p>
             Term insurance is a type of life insurance that provides coverage for a
             specific period of time or years. This type of life insurance provides financial
@@ -18,18 +18,17 @@
         </p>
 
     </div>
-    <div class="col-6">
+    <div class="col-12">
         <form method="POST" action="{{ route('app.storeZip') }}">
             @csrf
             <div class="row">
-                <div class="col-5">
+                <div class="input-group mb-3">
                     <input type="form-control" name="zip" id="zip" placeholder="zip">
-                    @error('zip')
-
-                    <span class="text-xs text-danger">{{ $message }}</span>
-                    @enderror
+                    <button class="btn btn-primary btn-sm">Go</button>
                 </div>
-                <div class="col-1"><button class="btn-default">Go</button></div>
+                @error('zip')
+                <span class="text-xs text-danger">{{ $message }}</span>
+                @enderror
             </div>
 
 

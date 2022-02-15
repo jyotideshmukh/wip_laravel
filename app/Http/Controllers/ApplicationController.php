@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBasicInfo;
 use App\Http\Requests\StoreEssentialInfo;
+use App\Mail\UserRegistered;
 use App\Repositories\ApplicationKeyValueRepository;
 use App\Repositories\ApplicationRepository;
 use App\Repositories\LifestyleRepository;
@@ -12,6 +13,7 @@ use App\Repositories\MedicalHistoryRepository;
 use App\Rules\ValidateUsZip;
 use App\Services\ZipDetails;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ApplicationController extends Controller
 {
@@ -135,6 +137,8 @@ class ApplicationController extends Controller
         $application->detail()->update([
             'email' => $request->email
         ]);
+        $application->refresh()->load('detail');
+        Mail::to($application->detail->email)->send(new UserRegistered($application));
         return redirect(route('app.uploadDocuments'));
     }
 }

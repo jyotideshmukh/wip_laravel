@@ -24,7 +24,7 @@ class UploadService
     public function upload($file, $uploadPath)
     {
         $name = $this->getName($file);
-        $path = $uploadPath . '/' . $name;
+        $path = $uploadPath . DIRECTORY_SEPARATOR . $name;
 
         $disk = $this->getDisk();
         Storage::disk($disk)->put($path, file_get_contents($file));

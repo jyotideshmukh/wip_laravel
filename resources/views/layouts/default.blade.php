@@ -18,7 +18,7 @@
         @include('layouts.menu')
 
     </div>
-    <div class="container">
+    <div class="container" style="padding-top: 100px;">
 
         @yield('content')
 

@@ -28,7 +28,7 @@ class StoreEssentialInfo extends FormRequest
             'height_inches' => 'required',
             'weight' => 'required',
             'is_us_citizen' => 'required',
-            'is_green_card_holder' => 'sometimes'
+            'is_green_card_holder' => 'required_if:is_us_citizen,==,yes'
         ];
     }
 }
